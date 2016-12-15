@@ -65,7 +65,7 @@ library
   other-extensions:    OverloadedStrings, ScopedTypeVariables, RecordWildCards, GeneralizedNewtypeDeriving
   
   -- Other library packages from which modules are imported.
-  build-depends: base >=4.7 && <4.9
+  build-depends: base >=4.7 && <5
                , network >=2.6 && <2.7
                , mime-mail >=0.4 && <0.5
                , transformers >= 0.2

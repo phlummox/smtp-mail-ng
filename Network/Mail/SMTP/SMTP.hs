@@ -198,7 +198,7 @@ makeTLSContext handle hostname = do
   -- an unknown CA.
   certStore <- getSystemCertificateStore
   let params = tlsClientParams hostname certStore
-  contextNew handle params rng
+  contextNew handle params -- rng
 
 -- | ClientParams are a slight variation on the default: we throw in a given
 --   certificate store and widen the supported ciphers.
