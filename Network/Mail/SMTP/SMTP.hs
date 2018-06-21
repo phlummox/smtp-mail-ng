@@ -44,7 +44,7 @@ import Network.Mail.SMTP.SMTPRaw
 import Network.Mail.SMTP.SMTPParameters
 
 -- STARTTLS support demands some TLS- and X.509-related definitions.
-import Network.TLS
+import Network.TLS hiding (HostName)
 import Network.TLS.Extra.Cipher (ciphersuite_all)
 import System.X509 (getSystemCertificateStore)
 import Data.X509.CertificateStore (CertificateStore)
