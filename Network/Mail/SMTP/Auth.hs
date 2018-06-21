@@ -1,11 +1,7 @@
 {-|
 Description: terms for doing SMTP authorization.
 -}
-module Network.Mail.SMTP.Auth (
-
-    authLogin
-
-  ) where
+module Network.Mail.SMTP.Auth where
 
 import Crypto.Hash (MD5)
 import Crypto.MAC.HMAC (hmac, HMAC)
