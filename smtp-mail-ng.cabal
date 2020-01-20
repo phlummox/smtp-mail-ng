@@ -55,7 +55,6 @@ library
                , memory
                -- ^ used only for Data.ByteArray.Encoding
                , base64-bytestring >=1.0 && <1.1
-               , tls >=1.3.9 && <1.5
                , stringsearch >= 0.3.6.5
   default-language:    Haskell2010
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Wno-name-shadowing
