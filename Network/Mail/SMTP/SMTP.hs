@@ -187,14 +187,12 @@ tlsUpgrade context = SMTP $ do
 --   coerce it into a first-class value.
 makeTLSContext :: Handle -> Network.TLS.HostName -> IO Context
 makeTLSContext handle hostname = do
-  -- Grab a random number generator.
-  --rng <- (createEntropyPool >>= return . cprgCreate) :: IO SystemRNG
   -- Find the certificate store. No error reporting if we can't find it; you'll
   -- just (probably) get an error later when the TLS handshake fails due to
   -- an unknown CA.
   certStore <- getSystemCertificateStore
   let params = tlsClientParams hostname certStore
-  contextNew handle params -- rng
+  contextNew handle params
 
 -- | ClientParams are a slight variation on the default: we throw in a given
 --   certificate store and widen the supported ciphers.

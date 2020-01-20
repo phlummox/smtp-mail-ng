@@ -7,13 +7,13 @@ module Network.Mail.SMTP.Auth (
 
   ) where
 
-import Crypto.Hash.MD5 (hash)
-import qualified Data.ByteString.Base16 as B16  (encode)
+import Crypto.Hash (MD5)
+import Crypto.MAC.HMAC (hmac, HMAC)
+import Data.ByteArray.Encoding (convertToBase, Base(Base16))
 import qualified Data.ByteString.Base64 as B64  (encode)
 
 import Data.ByteString  (ByteString)
 import Data.List
-import Data.Bits
 import Data.Monoid
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as B8
@@ -44,15 +44,6 @@ toAscii = B.pack . map (toEnum.fromEnum)
 b64Encode :: String -> ByteString
 b64Encode = B64.encode . toAscii
 
-hmacMD5 :: ByteString -> ByteString -> ByteString
-hmacMD5 text key = hash (okey <> hash (ikey <> text))
-    where key' = if B.length key > 64
-                 then hash key <> B.replicate 48 0
-                 else key <> B.replicate (64-B.length key) 0
-          ipad = B.replicate 64 0x36
-          opad = B.replicate 64 0x5c
-          ikey = B.pack $ B.zipWith xor key' ipad
-          okey = B.pack $ B.zipWith xor key' opad
 
 encodePlain :: UserName -> Password -> ByteString
 encodePlain user pass = b64Encode $ intercalate "\0" [user, user, pass]
@@ -62,7 +53,7 @@ encodeLogin user pass = (b64Encode user, b64Encode pass)
 
 cramMD5 :: String -> UserName -> Password -> ByteString
 cramMD5 challenge user pass =
-    B64.encode $ B8.unwords [user', B16.encode (hmacMD5 challenge' pass')]
+    B64.encode $ B8.unwords [user', convertToBase Base16 (hmac challenge' pass' :: HMAC MD5)]
   where
     challenge' = toAscii challenge
     user'      = toAscii user
