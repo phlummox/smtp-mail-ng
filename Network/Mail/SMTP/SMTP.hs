@@ -30,14 +30,13 @@ module Network.Mail.SMTP.SMTP
   ) 
   where
 
-import Control.Exception
-import Control.Monad.Trans
-import Control.Monad.Trans.Except
+import Control.Exception (SomeException, try)
+import Control.Monad.Except
 import Control.Monad.State
 
 import qualified Data.ByteString as B
-import Data.ByteString.Char8 (pack)
-import Data.Default
+import           Data.ByteString.Char8 (pack)
+import           Data.Default
 
 import Network.BSD (getHostName)
 import Network.Connection
@@ -97,7 +96,7 @@ command cmd = SMTP $ do
   liftIO $ smtpDebug ctxt $ "Send command: " ++ show (toByteString cmd)
   result <- liftIO $ try $ smtpSendCommand (smtpRaw ctxt) cmd
   case result :: Either SomeException () of
-    Left _err -> throwE UnknownError
+    Left _err -> throwError UnknownError
     Right () -> return ()
 
 -- | Send some bytes, with a crlf inserted at the end, without waiting for
@@ -108,7 +107,7 @@ bytes bs = SMTP $ do
     liftIO $ smtpDebug ctxt ("Send bytes: " ++ show bs)
     result  <- liftIO $ try (smtpSendRaw (smtpRaw ctxt) (B.append bs crlf))
     case result :: Either SomeException () of
-      Left _err -> throwE UnknownError
+      Left _err -> throwError UnknownError
       Right () -> return ()
   where
     crlf = pack "\r\n"
@@ -123,9 +122,9 @@ expect ok = SMTP $ do
   reply <- liftIO $ smtpGetReplyLines smtpraw
   liftIO $ smtpDebug ctxt $ "Receive response: " ++ show reply
   case reply of
-    Nothing -> throwE UnexpectedResponse
+    Nothing -> throwError UnexpectedResponse
     Just reply -> case ok reply of
-      Just err -> throwE err
+      Just err -> throwError err
       Nothing -> return ()
 
 -- | Like expect, but you give only the ReplyCode that is expected. Any other
