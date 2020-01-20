@@ -42,7 +42,7 @@ import Network.Mail.SMTP.SMTPParameters
 
 -- STARTTLS support demands some TLS- and X.509-related definitions.
 import Network.TLS
-import Network.TLS.Extra.Cipher (ciphersuite_all)
+import Network.TLS.Extra.Cipher (ciphersuite_default)
 import System.X509 (getSystemCertificateStore)
 import Data.X509.CertificateStore (CertificateStore)
 import Data.ByteString.Char8 (pack)
@@ -204,7 +204,7 @@ tlsClientParams hostname certStore = dflt {
   where
     dflt = defaultParamsClient hostname ""
     shared = (clientShared dflt) { sharedCAStore = certStore }
-    supported = (clientSupported dflt) { supportedCiphers = ciphersuite_all }
+    supported = (clientSupported dflt) { supportedCiphers = ciphersuite_default }
 
 -- | Description of an error in the SMTP monad evaluation.
 data SMTPError
