@@ -15,10 +15,3 @@ cabal.sandbox.config
 *.aux
 *.hp
 .stack-work
-work
-node_modules
-.dir-locals.el
-TAGS/
-_build/
-repos/
-outputfiles
