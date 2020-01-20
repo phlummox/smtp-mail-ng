@@ -1,0 +1,10 @@
+
+resolver: lts-2.22
+
+
+packages:
+- .
+
+# extra-deps: []
+
+
