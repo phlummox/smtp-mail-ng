@@ -29,14 +29,11 @@ module Network.Mail.SMTP.SMTP (
   ) where
 
 import Control.Exception
-import Control.Monad
-import Control.Applicative
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.State
 
-import Network
 import Network.BSD
 import Network.Mail.SMTP.Types
 import Network.Mail.SMTP.ReplyLine
@@ -51,7 +48,6 @@ import Data.X509.CertificateStore (CertificateStore)
 import Data.ByteString.Char8 (pack)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import Crypto.Random
 
 import System.IO
 
@@ -79,7 +75,7 @@ makeSMTPContext smtpParameters = do
     clientHostname <- getHostName
     result <- liftIO $ try (smtpConnect serverHostname (fromIntegral port))
     return $ case result :: Either SomeException (SMTPRaw, Maybe Greeting) of
-      Left err -> Left ConnectionFailure
+      Left _err -> Left ConnectionFailure
       Right (smtpRaw, _) -> Right $ SMTPContext smtpRaw serverHostname clientHostname debug
   where
     serverHostname = smtpHost smtpParameters
@@ -96,10 +92,10 @@ closeSMTPContext smtpContext = hClose (smtpHandle (smtpRaw smtpContext))
 command :: Command -> SMTP ()
 command cmd = SMTP $ do
   ctxt <- lift get
-  liftIO $ (smtpDebug ctxt ("Send command: " ++ show (toByteString cmd)))
-  result <- liftIO $ try ((smtpSendCommand (smtpRaw ctxt) cmd))
+  liftIO $ smtpDebug ctxt ("Send command: " ++ show (toByteString cmd))
+  result <- liftIO $ try (smtpSendCommand (smtpRaw ctxt) cmd)
   case result :: Either SomeException () of
-    Left err -> throwE UnknownError
+    Left _err -> throwE UnknownError
     Right () -> return ()
 
 -- | Send some bytes, with a crlf inserted at the end, without waiting for
@@ -107,10 +103,10 @@ command cmd = SMTP $ do
 bytes :: B.ByteString -> SMTP ()
 bytes bs = SMTP $ do
     ctxt <- lift get
-    liftIO $ (smtpDebug ctxt ("Send bytes: " ++ show bs))
-    result <- liftIO $ try ((smtpSendRaw (smtpRaw ctxt) (B.append bs crlf)))
+    liftIO $ smtpDebug ctxt ("Send bytes: " ++ show bs)
+    result <- liftIO $ try (smtpSendRaw (smtpRaw ctxt) (B.append bs crlf))
     case result :: Either SomeException () of
-      Left err -> throwE UnknownError
+      Left _err -> throwE UnknownError
       Right () -> return ()
   where
     crlf = pack "\r\n"
@@ -123,7 +119,7 @@ expect ok = SMTP $ do
   ctxt <- lift get
   let smtpraw = smtpRaw ctxt
   reply <- liftIO $ smtpGetReplyLines smtpraw
-  liftIO $ (smtpDebug ctxt ("Receive response: " ++ show reply))
+  liftIO $ smtpDebug ctxt ("Receive response: " ++ show reply)
   case reply of
     Nothing -> throwE UnexpectedResponse
     Just reply -> case ok reply of
@@ -162,7 +158,7 @@ tlsContext = SMTP $ do
   ctxt <- lift get
   tlsContext <- liftIO $ try (makeTLSContext (getSMTPHandle ctxt) (getSMTPServerHostName ctxt))
   case tlsContext :: Either SomeException Context of
-    Left err -> throwE EncryptionError
+    Left _err -> throwE EncryptionError
     Right context -> return context
 
 -- | Upgrade to TLS. If the handshake is successful, the underlying SMTPRaw
@@ -172,7 +168,7 @@ tlsUpgrade :: Context -> SMTP ()
 tlsUpgrade context = SMTP $ do
   result <- liftIO $ try (handshake context)
   case result :: Either SomeException () of
-    Left err -> throwE EncryptionError
+    Left _err -> throwE EncryptionError
     Right () -> do
       -- Now that we have upgraded, we must change the means by which we push
       -- and pull data to and from the pipe; we must use the TLS library's
@@ -192,7 +188,7 @@ tlsUpgrade context = SMTP $ do
 makeTLSContext :: Handle -> Network.TLS.HostName -> IO Context
 makeTLSContext handle hostname = do
   -- Grab a random number generator.
-  rng <- (createEntropyPool >>= return . cprgCreate) :: IO SystemRNG
+  --rng <- (createEntropyPool >>= return . cprgCreate) :: IO SystemRNG
   -- Find the certificate store. No error reporting if we can't find it; you'll
   -- just (probably) get an error later when the TLS handshake fails due to
   -- an unknown CA.

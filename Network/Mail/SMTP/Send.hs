@@ -55,10 +55,10 @@ sendRendered from to content = do
   where
 
     escapedContent :: BL.ByteString
-    escapedContent = replace pattern substitution content
+    escapedContent = replace patt substitution content
 
-    pattern :: B.ByteString
-    pattern = "\r\n.\r\n"
+    patt :: B.ByteString
+    patt = "\r\n.\r\n"
 
     substitution :: BL.ByteString
     substitution = "\r\n..\r\n"

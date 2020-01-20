@@ -16,11 +16,10 @@ module Network.Mail.SMTP.SMTPRaw (
 
   ) where
 
-import qualified Data.ByteString as B
-import           Data.ByteString.Char8 (pack, unpack)
-import           Network
-import           Network.Socket
 import           Data.Attoparsec.ByteString.Char8
+import qualified Data.ByteString as B
+import           Data.ByteString.Char8 (pack)
+import           Network
 import           System.IO
 
 import           Network.Mail.SMTP.ReplyLine
@@ -45,7 +44,7 @@ smtpConnect host port = do
   let push = B.hPut handle
   let pull = B.hGetSome handle 2048
   let close = hClose handle
-  return $ (SMTPRaw push pull close handle, maybeResult greet)
+  return (SMTPRaw push pull close handle, maybeResult greet)
 
 -- | Send an SMTP command and wait for the reply.
 --   You get Nothing in case the reply does not parse.

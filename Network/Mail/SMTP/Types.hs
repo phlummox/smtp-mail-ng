@@ -55,13 +55,13 @@ data Command
 --   server. No CRLF is appended.
 toByteString :: Command -> B.ByteString
 toByteString command = case command of
-    HELO bs -> B.intercalate space [(B.pack "HELO"), bs]
-    EHLO bs -> B.intercalate space [(B.pack "EHLO"), bs]
+    HELO bs -> B.intercalate space [B.pack "HELO", bs]
+    EHLO bs -> B.intercalate space [B.pack "EHLO", bs]
     MAIL bs -> B.append (B.pack "MAIL FROM:<") (B.append bs ">")
     RCPT bs -> B.append (B.pack "RCPT TO:<") (B.append bs ">")
-    EXPN bs -> B.intercalate space [(B.pack "EXPN"), bs]
-    VRFY bs -> B.intercalate space [(B.pack "VRFY"), bs]
-    HELP bs -> B.intercalate space [(B.pack "HELP"), bs]
+    EXPN bs -> B.intercalate space [B.pack "EXPN", bs]
+    VRFY bs -> B.intercalate space [B.pack "VRFY", bs]
+    HELP bs -> B.intercalate space [B.pack "HELP", bs]
     DATA -> B.pack "DATA"
     NOOP -> B.pack "NOOP"
     RSET -> B.pack "RSET"
