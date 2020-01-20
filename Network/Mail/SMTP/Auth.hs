@@ -1,22 +1,21 @@
 {-|
 Description: terms for doing SMTP authorization.
 -}
-module Network.Mail.SMTP.Auth (
-
+module Network.Mail.SMTP.Auth
+  (
     authLogin
+  )
+  where
 
-  ) where
+import           Crypto.Hash (MD5)
+import           Crypto.MAC.HMAC (hmac, HMAC)
 
-import Crypto.Hash (MD5)
-import Crypto.MAC.HMAC (hmac, HMAC)
-import Data.ByteArray.Encoding (convertToBase, Base(Base16))
+import           Data.ByteArray.Encoding (convertToBase, Base(Base16))
+import qualified Data.ByteString as B
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Base64 as B64  (encode)
-
-import Data.ByteString  (ByteString)
-import Data.List
-import Data.Monoid
-import qualified Data.ByteString       as B
 import qualified Data.ByteString.Char8 as B8
+import           Data.List (intercalate )
 
 import Network.Mail.SMTP.SMTP
 import Network.Mail.SMTP.Types
@@ -44,7 +43,6 @@ toAscii = B.pack . map (toEnum.fromEnum)
 b64Encode :: String -> ByteString
 b64Encode = B64.encode . toAscii
 
-
 encodePlain :: UserName -> Password -> ByteString
 encodePlain user pass = b64Encode $ intercalate "\0" [user, user, pass]
 
@@ -53,11 +51,14 @@ encodeLogin user pass = (b64Encode user, b64Encode pass)
 
 cramMD5 :: String -> UserName -> Password -> ByteString
 cramMD5 challenge user pass =
-    B64.encode $ B8.unwords [user', convertToBase Base16 (hmac challenge' pass' :: HMAC MD5)]
+    B64.encode $ B8.unwords [user', convertToBase Base16 hmac']
   where
     challenge' = toAscii challenge
     user'      = toAscii user
     pass'      = toAscii pass
+
+    hmac' :: HMAC MD5
+    hmac'      = hmac challenge' pass'
 
 {- Code from before the fork which is now dead, but I'll leave it around as
  - a reference for when we implement CRAM_MD5

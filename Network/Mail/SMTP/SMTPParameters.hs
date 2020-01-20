@@ -1,18 +1,18 @@
 {- |
 Description: parameters for an SMTP session.
 -}
-module Network.Mail.SMTP.SMTPParameters (
-
-    SMTPParameters(..)
-
-  , HostName
-  , PortNumber(..)
-
+module Network.Mail.SMTP.SMTPParameters
+  (
+    HostName
+  , PortNumber
+  , SMTPParameters(..)
   , defaultSMTPParameters
+  )
+  where
 
-  ) where
+import Network.Socket (PortNumber)
 
-import Network.Socket (HostName, PortNumber(..))
+type HostName = String
 
 -- | Data necessary to kick-start an SMTP session, plus a flag to indicate
 --   verbosity (actually a misnomer I though; should be smtpQuiet, since we
@@ -21,7 +21,8 @@ data SMTPParameters = SMTPParameters {
     smtpHost :: HostName
   , smtpPort :: PortNumber
   , smtpVerbose :: Bool
-  } deriving (Show)
+  } 
+  deriving Show
 
 -- | Default SMTP parameters for some hostname. Uses port 25, non-verbose.
 defaultSMTPParameters :: HostName -> SMTPParameters

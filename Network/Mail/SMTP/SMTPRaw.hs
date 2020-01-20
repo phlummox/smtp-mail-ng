@@ -4,8 +4,8 @@
 Description: low-level SMTP communciation.
 -}
 
-module Network.Mail.SMTP.SMTPRaw (
-
+module Network.Mail.SMTP.SMTPRaw 
+  (
     SMTPRaw(..)
   , smtpConnect
   , smtpSendCommand
@@ -13,38 +13,43 @@ module Network.Mail.SMTP.SMTPRaw (
   , smtpSendRaw
   , smtpGetReplyLines
   , smtpDisconnect
-
-  ) where
+  )
+  where
 
 import           Data.Attoparsec.ByteString.Char8
 import qualified Data.ByteString as B
 import           Data.ByteString.Char8 (pack)
-import           Network
-import           System.IO
+import           Network.Connection
+import qualified Network.Socket as S
 
 import           Network.Mail.SMTP.ReplyLine
 import           Network.Mail.SMTP.Types
 
--- | An SMTPRaw has arbitrary push/pull/close methods, and ALWAYS a Handle,
---   but that Handle is not assumed to be the direct means by which we push
---   pull or close. This is for STARTTLS support.
+-- | An SMTPRaw has arbitrary push/pull/close methods, and ALWAYS a Connection,
+--   but that Connection is not assumed to be the direct means by which we push
+--   pull or close.
 data SMTPRaw = SMTPRaw {
-    smtpPush :: B.ByteString -> IO ()
-  , smtpPull :: IO B.ByteString
-  , smtpClose :: IO ()
-  , smtpHandle :: Handle
+    smtpPush        :: B.ByteString -> IO ()
+  , smtpPull        :: IO B.ByteString
+  , smtpClose       :: IO ()
+  , smtpConn        :: Connection
+  , smtpConnContext :: ConnectionContext
   }
 
 -- | Try to open an SMTPRaw, taking the server greeting as well.
 --   No exception handling is performed.
-smtpConnect :: String -> Int -> IO (SMTPRaw, Maybe Greeting)
+smtpConnect ::
+  String -> S.PortNumber -> IO (SMTPRaw, Maybe Greeting)
 smtpConnect host port = do
-  handle <- connectTo host (PortNumber $ fromIntegral port)
-  greet <- parseWith (B.hGetSome handle 2048) greeting ""
-  let push = B.hPut handle
-  let pull = B.hGetSome handle 2048
-  let close = hClose handle
-  return (SMTPRaw push pull close handle, maybeResult greet)
+  ctx   <- initConnectionContext
+  let params  = ConnectionParams 
+                  host port Nothing Nothing
+  conn  <- connectTo ctx params
+  greet <- parseWith (connectionGet conn 2048) greeting ""
+  let push    = connectionPut conn
+      pull    = connectionGet conn 2048
+      close   = connectionClose conn
+  return (SMTPRaw push pull close conn ctx, maybeResult greet)
 
 -- | Send an SMTP command and wait for the reply.
 --   You get Nothing in case the reply does not parse.

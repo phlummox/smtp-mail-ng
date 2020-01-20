@@ -18,10 +18,11 @@ module Network.Mail.SMTP.ReplyLine (
 
   ) where
 
+import           Control.Applicative
+import           Control.Monad
+
 import qualified Data.ByteString as B
-import Data.Attoparsec.ByteString.Char8
-import Control.Applicative
-import Control.Monad
+import           Data.Attoparsec.ByteString.Char8
 
 import Network.Mail.SMTP.Types
 

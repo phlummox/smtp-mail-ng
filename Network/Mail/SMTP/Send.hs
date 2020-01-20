@@ -4,23 +4,23 @@
 Description: terms for sending mail.
 -}
 
-module Network.Mail.SMTP.Send (
-
+module Network.Mail.SMTP.Send 
+  (
     send
+  )
+  where
 
-  ) where
-
-import Control.Monad.IO.Class
+import           Control.Monad.IO.Class
+import qualified Data.ByteString as B
+import           Data.ByteString.Char8 (pack)
+import qualified Data.ByteString.Lazy as BL
+import           Data.ByteString.Lazy.Search (replace)
+import           Data.Text.Encoding (encodeUtf8)
+import           Network.Mail.Mime
 
 import Network.Mail.SMTP.Types
 import Network.Mail.SMTP.SMTP
-import Network.Mail.Mime
 
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
-import Data.ByteString.Char8 (pack)
-import Data.Text.Encoding (encodeUtf8)
-import Data.ByteString.Lazy.Search (replace)
 
 -- | Attempt to send an email.
 --   This involves sending MAIL, RCPT, and DATA commands.
@@ -38,7 +38,8 @@ send mail = do
 --   is the message body.
 --   This function will escape any "\r\n.\r\n" pattern, which would otherwise
 --   result in a premature ending to the message.
-sendRendered :: B.ByteString -> [B.ByteString] -> BL.ByteString -> SMTP ()
+sendRendered :: Foldable t =>
+        B.ByteString -> t B.ByteString -> BL.ByteString -> SMTP ()
 sendRendered from to content = do
     command (MAIL from)
     expectCode 250
@@ -51,9 +52,7 @@ sendRendered from to content = do
     -- We have to manually put in the .
     bytes (pack ".")
     expectCode 250
-
   where
-
     escapedContent :: BL.ByteString
     escapedContent = replace patt substitution content
 
